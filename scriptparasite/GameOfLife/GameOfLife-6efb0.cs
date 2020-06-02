@@ -21,8 +21,8 @@ namespace ns6efb0
     /// </summary>
     public class Script_Instance : GH_ScriptInstance
     {
-	    /// This method is added to prevent compiler errors when opening this file in visual studio (code) or rider.
-	    public override void InvokeRunScript(IGH_Component owner, object rhinoDocument, int iteration, List<object> inputs, IGH_DataAccess DA)
+        /// This method is added to prevent compiler errors when opening this file in visual studio (code) or rider.
+        public override void InvokeRunScript(IGH_Component owner, object rhinoDocument, int iteration, List<object> inputs, IGH_DataAccess DA)
         {
             throw new NotImplementedException();
         }
@@ -61,14 +61,16 @@ namespace ns6efb0
         /// they will have a default value.
         /// </summary>
         #region Runscript
-        private void RunScript(List<bool> cells, int rows, int columns, List<int> birthRule, List<int> survivalRule, bool run, bool reset, ref object A)
+        private void RunScript(List<bool> cells, int rows, int columns, List<int> birthRule, List<int> survivalRule, bool run, bool reset, ref object previous, ref object newIteration, ref object A)
         {
             //Sanity
-            if (run == false) {
+            if (run == false)
+            {
                 return;
             }
 
-            if (cells.Count != rows * columns) {
+            if (cells.Count != rows * columns)
+            {
                 Component.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "something weird with dimension of grid");
                 return;
             }
@@ -79,37 +81,141 @@ namespace ns6efb0
             bool[,] cellArray = new bool[columns, rows];
             int it = 0;
 
-            for (int j = 0; j < columns; j++) {
-                for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++)
+            {
+                for (int i = 0; i < rows; i++)
+                {
                     cellArray[j, i] = cells[it];
                     it++;
                 }
             }
-            
+
             //new array of alive/dead cells for next iteration
-            
+
             bool[,] newCells = new bool[columns, rows];
-            for (int j = 0; j < columns; j++) {
-                for (int i = 0; i < rows; i++) {
-                    bool prevState = cellArray[j, i];
-                    
+            int[,] nCount = new int[columns, rows];
+            for (int j = 0; j < columns; j++)
+            {
+                for (int i = 0; i < rows; i++)
+                {
+
                     //compute alive neighbors
                     int aliveNeighbors = 0;
                     int ni, nj;
 
                     // topleft
                     ni = i + 1;
-                    nj = i - 1;
+                    nj = j - 1;
                     if (ni > rows - 1) ni = 0;
                     else if (ni < 0) ni = rows - 1;
                     if (nj > columns - 1) nj = 0;
                     else if (nj < 0) nj = columns - 1;
-                    if(cellArray[nj, ni] == true) aliveNeighbors++;
+                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+
+                    // top
+                    ni = i + 1;
+                    nj = j;
+                    if (ni > rows - 1) ni = 0;
+                    else if (ni < 0) ni = rows - 1;
+                    if (nj > columns - 1) nj = 0;
+                    else if (nj < 0) nj = columns - 1;
+                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+
+                    // topright
+                    ni = i + 1;
+                    nj = j + 1;
+                    if (ni > rows - 1) ni = 0;
+                    else if (ni < 0) ni = rows - 1;
+                    if (nj > columns - 1) nj = 0;
+                    else if (nj < 0) nj = columns - 1;
+                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+
+                    // left
+                    ni = i;
+                    nj = j - 1;
+                    if (ni > rows - 1) ni = 0;
+                    else if (ni < 0) ni = rows - 1;
+                    if (nj > columns - 1) nj = 0;
+                    else if (nj < 0) nj = columns - 1;
+                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+
+                    // right
+                    ni = i;
+                    nj = j + 1;
+                    if (ni > rows - 1) ni = 0;
+                    else if (ni < 0) ni = rows - 1;
+                    if (nj > columns - 1) nj = 0;
+                    else if (nj < 0) nj = columns - 1;
+                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+
+                    // bottomleft
+                    ni = i - 1;
+                    nj = j - 1;
+                    if (ni > rows - 1) ni = 0;
+                    else if (ni < 0) ni = rows - 1;
+                    if (nj > columns - 1) nj = 0;
+                    else if (nj < 0) nj = columns - 1;
+                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+
+                    // bottom
+                    ni = i - 1;
+                    nj = j;
+                    if (ni > rows - 1) ni = 0;
+                    else if (ni < 0) ni = rows - 1;
+                    if (nj > columns - 1) nj = 0;
+                    else if (nj < 0) nj = columns - 1;
+                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+
+                    // bottomright
+                    ni = i - 1;
+                    nj = j + 1;
+                    if (ni > rows - 1) ni = 0;
+                    else if (ni < 0) ni = rows - 1;
+                    if (nj > columns - 1) nj = 0;
+                    else if (nj < 0) nj = columns - 1;
+                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+
+                    Print("alive neighbors: " + aliveNeighbors);
+                    nCount[j, i] = aliveNeighbors;
+
+                    //compute new state
+                    bool prevState = cellArray[j, i];
+                    bool newState = false;
+
+                    //if cells were dead
+                    if (prevState == false)
+                    {
+                        foreach (int b in birthRule)
+                        {
+                            if (b == aliveNeighbors)
+                            {
+                                newState = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    //if cell was alive
+                    else
+                    {
+                        foreach (int s in survivalRule)
+                        {
+                            if (s == aliveNeighbors)
+                            {
+                                newState = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    //store new state in array
+                    newCells[j, i] = newState;
                 }
             }
-            
-            
-            A = cellArray;
+
+            previous = cellArray;
+            newIteration = newCells;
+            A = nCount;
             //Print("end of script");
         }
         #endregion
