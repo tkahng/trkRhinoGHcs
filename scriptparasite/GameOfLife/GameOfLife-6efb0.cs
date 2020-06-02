@@ -61,7 +61,7 @@ namespace ns6efb0
         /// they will have a default value.
         /// </summary>
         #region Runscript
-        private void RunScript(List<bool> cells, int rows, int columns, List<int> birthRule, List<int> survivalRule, bool run, bool reset, ref object previous, ref object newIteration, ref object A)
+        private void RunScript(object ticker, List<bool> cells, int rows, int columns, List<int> birthRule, List<int> survivalRule, bool run, bool reset, ref object previous, ref object newIteration, ref object A)
         {
             //Sanity
             if (run == false)
@@ -75,25 +75,35 @@ namespace ns6efb0
                 return;
             }
 
-
-
-            //turn list into 2d array
-            bool[,] cellArray = new bool[columns, rows];
-            int it = 0;
-
-            for (int j = 0; j < columns; j++)
+            if (reset == true)
             {
-                for (int i = 0; i < rows; i++)
+                //turn list into 2d array
+                prevCells = new bool[columns, rows];
+                int it = 0;
+
+                for (int j = 0; j < columns; j++)
                 {
-                    cellArray[j, i] = cells[it];
-                    it++;
+                    for (int i = 0; i < rows; i++)
+                    {
+                        prevCells[j, i] = cells[it];
+                        it++;
+                    }
                 }
+
             }
 
             //new array of alive/dead cells for next iteration
+            // bool[,] prevCells = new bool[columns, rows];
+            // bool[,] newCells = cellArray;
 
-            bool[,] newCells = new bool[columns, rows];
+            // bool[,] newCells = new bool[columns, rows];
             int[,] nCount = new int[columns, rows];
+            // for (int k = 0; k < iterations; k++)
+            // {
+            // switch previous cells with new ones
+            // prevCells = newCells;
+            bool[,] newCells = new bool[columns, rows];
+
             for (int j = 0; j < columns; j++)
             {
                 for (int i = 0; i < rows; i++)
@@ -110,7 +120,7 @@ namespace ns6efb0
                     else if (ni < 0) ni = rows - 1;
                     if (nj > columns - 1) nj = 0;
                     else if (nj < 0) nj = columns - 1;
-                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+                    if (prevCells[nj, ni] == true) aliveNeighbors++;
 
                     // top
                     ni = i + 1;
@@ -119,7 +129,7 @@ namespace ns6efb0
                     else if (ni < 0) ni = rows - 1;
                     if (nj > columns - 1) nj = 0;
                     else if (nj < 0) nj = columns - 1;
-                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+                    if (prevCells[nj, ni] == true) aliveNeighbors++;
 
                     // topright
                     ni = i + 1;
@@ -128,7 +138,7 @@ namespace ns6efb0
                     else if (ni < 0) ni = rows - 1;
                     if (nj > columns - 1) nj = 0;
                     else if (nj < 0) nj = columns - 1;
-                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+                    if (prevCells[nj, ni] == true) aliveNeighbors++;
 
                     // left
                     ni = i;
@@ -137,7 +147,7 @@ namespace ns6efb0
                     else if (ni < 0) ni = rows - 1;
                     if (nj > columns - 1) nj = 0;
                     else if (nj < 0) nj = columns - 1;
-                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+                    if (prevCells[nj, ni] == true) aliveNeighbors++;
 
                     // right
                     ni = i;
@@ -146,7 +156,7 @@ namespace ns6efb0
                     else if (ni < 0) ni = rows - 1;
                     if (nj > columns - 1) nj = 0;
                     else if (nj < 0) nj = columns - 1;
-                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+                    if (prevCells[nj, ni] == true) aliveNeighbors++;
 
                     // bottomleft
                     ni = i - 1;
@@ -155,7 +165,7 @@ namespace ns6efb0
                     else if (ni < 0) ni = rows - 1;
                     if (nj > columns - 1) nj = 0;
                     else if (nj < 0) nj = columns - 1;
-                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+                    if (prevCells[nj, ni] == true) aliveNeighbors++;
 
                     // bottom
                     ni = i - 1;
@@ -164,7 +174,7 @@ namespace ns6efb0
                     else if (ni < 0) ni = rows - 1;
                     if (nj > columns - 1) nj = 0;
                     else if (nj < 0) nj = columns - 1;
-                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+                    if (prevCells[nj, ni] == true) aliveNeighbors++;
 
                     // bottomright
                     ni = i - 1;
@@ -173,13 +183,13 @@ namespace ns6efb0
                     else if (ni < 0) ni = rows - 1;
                     if (nj > columns - 1) nj = 0;
                     else if (nj < 0) nj = columns - 1;
-                    if (cellArray[nj, ni] == true) aliveNeighbors++;
+                    if (prevCells[nj, ni] == true) aliveNeighbors++;
 
-                    Print("alive neighbors: " + aliveNeighbors);
+                    // Print("alive neighbors: " + aliveNeighbors);
                     nCount[j, i] = aliveNeighbors;
 
                     //compute new state
-                    bool prevState = cellArray[j, i];
+                    bool prevState = prevCells[j, i];
                     bool newState = false;
 
                     //if cells were dead
@@ -211,17 +221,25 @@ namespace ns6efb0
                     //store new state in array
                     newCells[j, i] = newState;
                 }
+                // }
             }
 
-            previous = cellArray;
+            // outputs
+            previous = prevCells;
             newIteration = newCells;
             A = nCount;
             //Print("end of script");
+            // updateCount++;
+            // B = updateCount;
+
+            // store new cells for next iteration
+            prevCells = newCells;
         }
         #endregion
 
         #region Additional
-
+        bool[,] prevCells;
+        // int updateCount;
         #endregion
     }
 }
