@@ -66,7 +66,8 @@ namespace ns8afd6
         #region Runscript
         private void RunScript(List<Point3d> Vertices, Polyline polygon, ref object Polygons, ref object Skeleton, ref object Spine)
         {
-            // PolyCurve polycurve = new PolyCurve;
+            //***************** GeoemetryEx implementation ****************************
+            //GeoemetryEx implementation. input is Polyline polygon, outs Polygons, Skeleton, Spine. only does outerloops
             var plane = new Plane(Rhino.Geometry.Plane.WorldXY);
             var polycurve = polygon.ToPolylineCurve();
 

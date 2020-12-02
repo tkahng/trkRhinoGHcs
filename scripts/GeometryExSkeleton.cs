@@ -65,7 +65,7 @@ namespace ns8afd6
         /// </summary>
         #region Runscript
         private void RunScript(List<Point3d> Vertices, Polyline polygon, ref object Polygons, ref object Skeleton, ref object Spine)
-        {
+        {                   // Skeleton implementation from GeometryEx. Does not do closed loops 
                             // PolyCurve polycurve = new PolyCurve;
                             var plane = new Plane(Rhino.Geometry.Plane.WorldXY);
                             var polycurve = polygon.ToPolylineCurve();
