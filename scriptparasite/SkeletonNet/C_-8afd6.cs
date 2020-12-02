@@ -24,8 +24,8 @@ namespace ns8afd6
     /// </summary>
     public class Script_Instance : GH_ScriptInstance
     {
-	    /// This method is added to prevent compiler errors when opening this file in visual studio (code) or rider.
-	    public override void InvokeRunScript(IGH_Component owner, object rhinoDocument, int iteration, List<object> inputs, IGH_DataAccess DA)
+        /// This method is added to prevent compiler errors when opening this file in visual studio (code) or rider.
+        public override void InvokeRunScript(IGH_Component owner, object rhinoDocument, int iteration, List<object> inputs, IGH_DataAccess DA)
         {
             throw new NotImplementedException();
         }
@@ -64,25 +64,60 @@ namespace ns8afd6
         /// they will have a default value.
         /// </summary>
         #region Runscript
-        private void RunScript(List<Point3d> Vertices, ref object output)
+        private void RunScript(List<Point3d> Vertices, Polyline polygon, ref object Polygons, ref object Skeleton, ref object Spine)
         {
+            // PolyCurve polycurve = new PolyCurve;
+            var plane = new Plane(Rhino.Geometry.Plane.WorldXY);
+            var polycurve = polygon.ToPolylineCurve();
+
             var vertices2d = new List<StraightSkeletonNet.Primitives.Vector2d>();
-            foreach (var vertex in Vertices)
+
+            foreach (var seg in polygon.GetSegments())
             {
-                    vertices2d.Add(new StraightSkeletonNet.Primitives.Vector2d(vertex.X, vertex.Y));
+                var vertex = seg.From;
+                vertices2d.Add(new StraightSkeletonNet.Primitives.Vector2d(vertex.X, vertex.Y));
             }
+
             var skeleton = SkeletonBuilder.Build(vertices2d);
+
             var polygons = new List<Polyline>();
+
             foreach (var edgeResult in skeleton.Edges)
             {
-                    var vertices = new List<Point3d>();
-                    foreach (var vertex in edgeResult.Polygon)
-                    {
-                            vertices.Add(new Point3d(vertex.X, vertex.Y, 0.0));
-                    }
-                    polygons.Add(new Polyline(vertices));
+                var vertices = new List<Point3d>();
+                foreach (var vertex in edgeResult.Polygon)
+                {
+                    vertices.Add(new Point3d(vertex.X, vertex.Y, 0.0));
+                }
+                polygons.Add(new Polyline(vertices));
             }
-            output = polygons;
+
+            var skels = new List<Line>();
+            var isin = Rhino.Geometry.PointContainment.Inside;
+            foreach (var poly in polygons)
+            {
+                foreach (var seg in poly.GetSegments())
+                {
+                    if (polycurve.Contains(seg.From, plane, 0.01) == isin)
+                    {
+                        skels.Add(seg);
+                    }
+                }
+            }
+
+            var spine = new List<Line>();
+
+            foreach (var skel in skels)
+            {
+                if ((polycurve.Contains(skel.From, plane, 0.01) == isin) && (polycurve.Contains(skel.To, plane, 0.01) == isin))
+                {
+                    spine.Add(skel);
+                }
+            }
+
+            Polygons = polygons;
+            Skeleton = skels;
+            Spine = spine;
         }
         #endregion
 
