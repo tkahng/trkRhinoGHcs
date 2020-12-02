@@ -21,8 +21,8 @@ namespace ns7755f
     /// </summary>
     public class Script_Instance : GH_ScriptInstance
     {
-	    /// This method is added to prevent compiler errors when opening this file in visual studio (code) or rider.
-	    public override void InvokeRunScript(IGH_Component owner, object rhinoDocument, int iteration, List<object> inputs, IGH_DataAccess DA)
+        /// This method is added to prevent compiler errors when opening this file in visual studio (code) or rider.
+        public override void InvokeRunScript(IGH_Component owner, object rhinoDocument, int iteration, List<object> inputs, IGH_DataAccess DA)
         {
             throw new NotImplementedException();
         }
@@ -89,13 +89,14 @@ namespace ns7755f
                 }
             }
             //Datatree to store roofs brep/surfaces
-            DataTree<Brep> roofsDT = new   DataTree<Brep>();
+            DataTree<Brep> roofsDT = new DataTree<Brep>();
 
             //Parallel for
             System.Threading.Tasks.Parallel.For(0, polylines.Count,
-                index => {
-                bool parallel = true;
-                roofsDT.AddRange(SandDune(polylines[index], types[index], false, parallel), new GH_Path(index));
+                index =>
+                {
+                    bool parallel = true;
+                    roofsDT.AddRange(SandDune(polylines[index], types[index], false, parallel), new GH_Path(index));
                 });
 
             roofs = roofsDT;
@@ -144,7 +145,7 @@ namespace ns7755f
                 else
                 {
                     //Use of classical surface calculation of polyline
-                    if (SurfaceOnXYplane(polyline) > 0)  orientation = -1;
+                    if (SurfaceOnXYplane(polyline) > 0) orientation = -1;
                     else orientation = 1;
                 }
 
@@ -341,20 +342,21 @@ namespace ns7755f
             if (parallel)
             {
                 System.Threading.Tasks.Parallel.For(0, breps.Count,
-                    i => {
-                    List<Curve> curves = BrepsCurvesIntersection(breps, i, tol, parallel);
-
-                    List<Brep> bb = new List<Brep>();
-                    BrepFace bf = breps[i].Faces[0];
-                    Brep split = bf.Split(curves, tol);
-                    if (split != null)
+                    i =>
                     {
-                        foreach(BrepFace splitFace in split.Faces)
+                        List<Curve> curves = BrepsCurvesIntersection(breps, i, tol, parallel);
+
+                        List<Brep> bb = new List<Brep>();
+                        BrepFace bf = breps[i].Faces[0];
+                        Brep split = bf.Split(curves, tol);
+                        if (split != null)
                         {
-                            bb.Add(splitFace.DuplicateFace(false));
+                            foreach (BrepFace splitFace in split.Faces)
+                            {
+                                bb.Add(splitFace.DuplicateFace(false));
+                            }
                         }
-                    }
-                    output.AddRange(LowerBrep(bb, curve, tol));
+                        output.AddRange(LowerBrep(bb, curve, tol));
                     });
             }
             else
@@ -369,7 +371,7 @@ namespace ns7755f
                     Brep split = bf.Split(curves, tol);
                     if (split != null)
                     {
-                        foreach(BrepFace splitFace in split.Faces)
+                        foreach (BrepFace splitFace in split.Faces)
                         {
                             bb.Add(splitFace.DuplicateFace(false));
                         }
@@ -383,26 +385,27 @@ namespace ns7755f
         //Determine the intersection between the roofs
         public List<Curve> BrepsCurvesIntersection(List<Brep> breps, int index, double tol, bool parallel)
         {
-            List<Curve> output = new List<Curve> ();
+            List<Curve> output = new List<Curve>();
             if (parallel)
             {
                 System.Threading.Tasks.Parallel.For(0, breps.Count,
-                    i => {
-                    if (i != index)
+                    i =>
                     {
-                        Curve[] intersectionCurves;
-                        Point3d[] intersectionPoints;
-                        if (Rhino.Geometry.Intersect.Intersection.BrepBrep(breps[i], breps[index], tol, out intersectionCurves, out intersectionPoints))
+                        if (i != index)
                         {
-                            foreach (Curve curve in intersectionCurves)
+                            Curve[] intersectionCurves;
+                            Point3d[] intersectionPoints;
+                            if (Rhino.Geometry.Intersect.Intersection.BrepBrep(breps[i], breps[index], tol, out intersectionCurves, out intersectionPoints))
                             {
-                                output.Add(curve);
+                                foreach (Curve curve in intersectionCurves)
+                                {
+                                    output.Add(curve);
+                                }
                             }
                         }
-                    }
                     });
             }
-                //Not parallel
+            //Not parallel
             else
             {
                 for (int i = 0; i < (breps.Count - 0); i++)
@@ -438,7 +441,7 @@ namespace ns7755f
                 {
                     Curve[] overlapCurves;
                     Point3d[] intersectionPoints;
-                    bool test = Rhino.Geometry.Intersect.Intersection.CurveBrep(roofCurve, breps[i], tol, out overlapCurves, out  intersectionPoints);
+                    bool test = Rhino.Geometry.Intersect.Intersection.CurveBrep(roofCurve, breps[i], tol, out overlapCurves, out intersectionPoints);
 
                     if (test)
                     {
@@ -470,7 +473,7 @@ namespace ns7755f
             Vector3d sum = Vector3d.Zero;
             for (int i = 0; i < (polyline.Count - 1); i++)
             {
-                Vector3d cross = Vector3d.CrossProduct((Vector3d) (polyline[i] - polyline[0]), (Vector3d) (polyline[i + 1] - polyline[0]));
+                Vector3d cross = Vector3d.CrossProduct((Vector3d)(polyline[i] - polyline[0]), (Vector3d)(polyline[i + 1] - polyline[0]));
                 sum = sum + cross;
             }
             return sum.Z;

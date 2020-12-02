@@ -22,5 +22,9 @@
       <HintPath>C:\Users\Tchunoo\AppData\Roaming\Grasshopper\Libraries\StraightSkeletonNet.dll</HintPath>
       <Private>False</Private>
     </Reference>    
+    <Reference Include="StraightSkeletonNet">
+      <HintPath>C:\Users\인시공현장PC\AppData\Roaming\Grasshopper\Libraries\StraightSkeletonNet.dll</HintPath>
+      <Private>False</Private>
+    </Reference>  
   </ItemGroup>
 </Project>
